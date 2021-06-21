@@ -10,7 +10,6 @@ const threshold float64 = 1e-10
 // Sqrt - Approximates math.Sqrt function
 func Sqrt(x float64) float64 {
     z := 1.0
-
     for i := 0; i < 10; i++ {
         if math.Abs((z*z - x) / (2*z)) < threshold {
             return z
