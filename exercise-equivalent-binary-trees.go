@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-
 	"golang.org/x/tour/tree"
 )
 
@@ -18,23 +17,29 @@ func WalkR(t *tree.Tree, ch chan int) {
 		return
 	}
 
-	Walk(t.Left, ch)
+	WalkR(t.Left, ch)
 	ch <- t.Value
-	Walk(t.Right, ch)
+	WalkR(t.Right, ch)
 }
 
 // Same determines whether the trees
 // t1 and t2 contain the same values.
 func Same(t1, t2 *tree.Tree) bool {
-	ch1 := make(chan int)
+	ch1, ch2 := make(chan int), make(chan int)
 	go Walk(t1, ch1)
-	ch2 := make(chan int)
 	go Walk(t2, ch2)
 
-	for n1 := range ch1 {
-		if n1 != <-ch2 {
+	for {
+        v1, ok1 := <-ch1
+        v2, ok2 := <-ch2
+
+		if (v1 != v2 || ok1 != ok2) {
 			return false
 		}
+
+        if !ok1 {
+            break
+        }
 	}
 	return true
 }
@@ -42,10 +47,16 @@ func Same(t1, t2 *tree.Tree) bool {
 func main() {
 	ch := make(chan int)
 	go Walk(tree.New(1), ch)
-	for n := range ch {
-		fmt.Printf("%v ", n)
+	for {
+        v, ok := <-ch
+		fmt.Printf("%v ", v)
+        
+        if !ok {
+            break
+        }
 	}
+
 	fmt.Println()
-	fmt.Println(Same(tree.New(1), tree.New(1)))
-	fmt.Println(Same(tree.New(1), tree.New(2)))
+    fmt.Println("1 and 1 are same:", Same(tree.New(1), tree.New(1)))
+    fmt.Println("1 and 2 are same:", Same(tree.New(1), tree.New(2)))
 }
